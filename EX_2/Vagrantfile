@@ -1,0 +1,17 @@
+Vagrant.configure("2") do |c|
+  c.vm.box = "debian/bookworm64"
+  c.vm.hostname = "srv-web"
+  c.vm.network "forwarded_port", guest: 80, host:8080
+  c.vm.synced_folder "./www", "/var/www/html"
+  c.vm.provision "shell", inline: <<-SHELL
+    apt update && apt upgrade -y
+    apt install apache2 -y
+    chown -R www-data:www-data /var/www/html
+  
+  SHELL
+  c.vm.provider "virtualbox" do |vb|
+    vb.name = "VM-WEB"
+    vb.memory = "2048"
+    vb.cpus= 2
+  end
+end
