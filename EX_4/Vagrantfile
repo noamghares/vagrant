@@ -1,0 +1,19 @@
+Vagrant.configure(2) do |config|
+  #Box de base
+  config.vm.box = "debian/bookworm64"
+
+  #Configuration du hostname
+  config.vm.hostname = "srv-ansible-secure"
+
+  #Definition de l'adresse ip
+  config.vm.network "private_network", ip: "192.168.56.10"
+
+  #Mappage de port 80 -->8080
+  config.vm.network "forwarded_port", guest:80, host: 8080
+
+  #Configuration du provisionneur Ansible Local
+  config.vm.provision "ansible_local" do |ansible|
+    #Fichier contenant les instructions
+    ansible.playbook = "ansible/playbook.yml"
+  end
+end

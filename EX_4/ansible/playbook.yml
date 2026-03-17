@@ -1,0 +1,55 @@
+--- # Debut du playbook
+- name : "Configuration de base et sécurisation du serveur" #Nom du projet
+  hosts: all #S'applique à toutes les machines
+  become: true #Executer toutes les taches en tant que 'root'
+
+  tasks: #Liste des taches a effectuer dans l'ordre 
+
+    # --- PARTIE 1 : MISE A JOUR DU SYSTEME ---
+    - name: "Mise a jour complète du systeme (apt update & upgrade)" #Nom de la tache
+      apt:
+        update_cache: yes #Fait un apt update
+        upgrade: dist #Fait un apt dist-upgrade (mise a jour complete)
+        cache_valid_time: 3600 #Ne refait l'update que si le dernier date de +1h
+
+    #--- PARTIE 2 : INSTALLATION DU SERVEUR WEB ---
+    - name: "Installation du serveur apache2"
+      apt:
+        name: apache2
+        state: present
+      
+    - name: "Demarrage de apache2"
+      service:
+        name: apache2
+        state: started #Lance le service 
+        enabled: true #L'active au démarrage du systeme
+    
+    #--- PARTIE 3 : SECURISATION AVEC UFW ---
+    - name: "Installation du packet UFW (Firewall)"
+      apt:
+        name: ufw
+        state: present
+    
+    - name: "Autoriser SSH (port 22) - CRITIQUE pour Vagrant"
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+    
+    - name: "Autoriser HTTP (port 80)"
+      ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+
+    - name: "Activer le Firewall et bloquer tout le reste par defaut "
+      ufw: 
+        state: enabled
+        policy: deny #Politique par défaut : tout refuser sauf nos règles
+        direction: incoming # Pour le trafic entrant
+
+    #---PARTIE 4 : CONTENU DE TEST---
+    - name: "Creation de la plage d'acceuil"
+      copy:
+        content: "<h1 style='color: red;'>Ma super page web avec Ansible </h1>"
+        dest: /var/www/html/index.html
